@@ -1,0 +1,6 @@
+[package]
+name = "reversing-nearness"
+version = "0.1.0"
+authors = ["Matthew DiBello <matthew.quickbeam@gmail.com>"]
+
+[dependencies]
