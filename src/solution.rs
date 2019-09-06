@@ -18,7 +18,7 @@ impl Solution {
         return s;
     }
 
-    pub fn evaluate(&self) -> u64 {
+    pub fn evaluate(mut self) -> u64 {
         let lower_bounds: Vec<u64> = vec![
             0, 10, 72, 816, 3800, 16902, 52528, 155840, 381672, 902550,
             1883244, 3813912, 7103408, 12958148, 22225500, 37474816,
@@ -27,20 +27,49 @@ impl Solution {
             2425939956, 3252444776, 4294801980, 5643997650,
         ];
         let size = self.grid.len() as u32;
-        let original = Solution::new(size);
-        let mut sum = 0;
+        let mut sum: u64 = 0;
         for x1 in 0..size {
             for y1 in 0..size {
                 for x2 in 0..size {
                     for y2 in 0..size {
-                        sum += original.distance(x1, y1, x2, y2) *
-                                self.distance(x1, y1, x2, y2);
+                        let orig_idx_1 = self.grid[x1 as usize][y1 as usize];
+                        let x_a = orig_idx_1 % size;
+                        let y_a = orig_idx_1 / size;
+                        let orig_idx_2 = self.grid[x2 as usize][y2 as usize];
+                        let x_b = orig_idx_2 % size;
+                        let y_b = orig_idx_2 / size;
+                        sum += distance(x1 as i32, y1 as i32, x2 as i32, y2 as i32, size as i32) * 
+                                distance(x_a as i32, y_a as i32, x_b as i32, y_b as i32, size as i32);
                     }
                 }
             }
         }
-        return (sum as u64) - lower_bounds[(size - 1) as usize];
+        self.eval = (sum as u64) - lower_bounds[(size - 1) as usize];
+        return self.eval;
     }
+}
+
+pub fn distance(x_a: i32, y_a: i32, x_b: i32, y_b: i32, size: i32) -> u64 {
+    let dx;
+    if (x_b - x_a).abs() <= size / 2 {
+        dx = (x_b - x_a).abs();
+    } else if x_a > x_b {
+        dx = x_b + size - x_a;
+    } else {
+        dx = x_a + size - x_b;
+    }
+
+    let dy;
+    if (y_b - y_a).abs() <= size / 2 {
+        dy = (y_b - y_a).abs();
+    } else if y_a > y_b {
+        dy = y_b + size - y_a;
+    } else {
+        dy = y_a + size - y_b;
+    }
+
+    println!("dx: {} / dy: {}", dx, dy);
+    return (dx as u64).pow(2) + (dy as u64).pow(2);
 }
 
 fn index_to_name(n: u32, size: u32) -> String {
@@ -73,5 +102,58 @@ impl std::fmt::Display for Solution {
             }
         }
         return write!(f, "");
+    }
+}
+
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_distance_size_3() {
+        assert_eq!(distance(0, 0, 1, 0, 3), 1);
+        assert_eq!(distance(0, 0, 2, 0, 3), 1);
+        assert_eq!(distance(0, 0, 0, 1, 3), 1);
+        assert_eq!(distance(0, 0, 0, 2, 3), 1);
+        assert_eq!(distance(0, 0, 1, 1, 3), 2);
+        assert_eq!(distance(0, 0, 2, 2, 3), 2);
+        assert_eq!(distance(2, 1, 1, 2, 3), 2);
+        assert_eq!(distance(1, 0, 0, 0, 3), 1);
+        assert_eq!(distance(2, 0, 0, 0, 3), 1);
+        assert_eq!(distance(0, 1, 0, 0, 3), 1);
+        assert_eq!(distance(0, 2, 0, 0, 3), 1);
+        assert_eq!(distance(1, 1, 0, 0, 3), 2);
+        assert_eq!(distance(2, 2, 0, 0, 3), 2);
+        assert_eq!(distance(1, 2, 2, 1, 3), 2);
+    }
+
+    #[test]
+    fn test_distance_size_5() {
+        assert_eq!(distance(0, 0, 1, 0, 5), 1);
+        assert_eq!(distance(0, 0, 2, 0, 5), 4);
+        assert_eq!(distance(0, 0, 3, 0, 5), 4);
+        assert_eq!(distance(0, 0, 4, 4, 5), 2);
+        assert_eq!(distance(1, 0, 2, 0, 5), 1);
+        assert_eq!(distance(1, 0, 3, 0, 5), 4);
+        assert_eq!(distance(1, 0, 4, 0, 5), 4);
+        assert_eq!(distance(1, 0, 4, 4, 5), 5);
+        assert_eq!(distance(2, 0, 3, 0, 5), 1);
+        assert_eq!(distance(2, 0, 4, 0, 5), 4);
+        assert_eq!(distance(2, 0, 0, 1, 5), 5);
+        assert_eq!(distance(2, 0, 4, 4, 5), 5);
+        assert_eq!(distance(3, 4, 4, 4, 5), 1);
+        
+        assert_eq!(distance(1, 0, 0, 0, 5), 1);
+        assert_eq!(distance(2, 0, 0, 0, 5), 4);
+        assert_eq!(distance(3, 0, 0, 0, 5), 4);
+        assert_eq!(distance(4, 4, 0, 0, 5), 2);
+        assert_eq!(distance(2, 0, 1, 0, 5), 1);
+        assert_eq!(distance(3, 0, 1, 0, 5), 4);
+        assert_eq!(distance(4, 0, 1, 0, 5), 4);
+        assert_eq!(distance(4, 4, 1, 0, 5), 5);
+        assert_eq!(distance(3, 0, 2, 0, 5), 1);
+        assert_eq!(distance(4, 0, 2, 0, 5), 4);
+        assert_eq!(distance(0, 1, 2, 0, 5), 5);
+        assert_eq!(distance(4, 4, 2, 0, 5), 5);
+        assert_eq!(distance(4, 4, 3, 4, 5), 1);
     }
 }
