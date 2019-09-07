@@ -1,8 +1,10 @@
 use rand::distributions::{Distribution, Uniform};
 
+#[derive(Clone)]
 pub struct Solution {
     grid: Vec<Vec<u32>>,
     eval: u64,
+    opt: u64,
 }
 
 impl Solution {
@@ -10,6 +12,7 @@ impl Solution {
         let mut s: Solution = Solution {
             grid: Vec::new(),
             eval: 0,
+            opt: 0,
         };
         for i in 0..size.pow(2) {
             if i % size == 0 {
@@ -17,6 +20,27 @@ impl Solution {
             }
             s.grid[(i/size) as usize].push(i as u32);
         }
+        return s;
+    }
+
+    pub fn load(strs: Vec<&str>) -> Solution {
+        let mut s: Solution = Solution {
+            grid: Vec::new(),
+            eval: 0,
+            opt: 0,
+        };
+
+        let size = (strs.len() as f64).sqrt() as u32;
+        for i in 0..strs.len() {
+            if i as u32 % size == 0 {
+                s.grid.push(Vec::new());
+            }
+            let idx = (i as u32 / size) as usize;
+            s.grid[idx].push(name_to_index(strs[i], size));
+        }
+
+        s.eval = s.clone().evaluate();
+
         return s;
     }
 
@@ -47,7 +71,8 @@ impl Solution {
                 }
             }
         }
-        self.eval = (sum / 2) - lower_bounds[(size - 1) as usize];
+        self.opt = lower_bounds[(size - 1) as usize];
+        self.eval = (sum / 2) - self.opt;
         return self.eval;
     }
 
@@ -85,7 +110,6 @@ fn distance(x_a: i32, y_a: i32, x_b: i32, y_b: i32, size: i32) -> u64 {
         dy = y_a + size - y_b;
     }
 
-    //println!("dx: {} / dy: {}", dx, dy);
     return (dx as u64).pow(2) + (dy as u64).pow(2);
 }
 
@@ -97,6 +121,16 @@ fn index_to_name(n: u32, size: u32) -> String {
     ];
     return String::from(alphabet[(n%size) as usize]) +
            &String::from(alphabet[(n/size) as usize]);
+}
+
+fn name_to_index(name: &str, size: u32) -> u32 {
+    let alphabet: Vec<char> = vec![
+        'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J',
+        'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T',
+        'U', 'V', 'W', 'X', 'Y', 'Z', '1', '2', '3', '4',
+    ];
+    return (alphabet.iter().position(|&r| r == name.chars().nth(1).unwrap()).unwrap() as u32 * size) +
+            alphabet.iter().position(|&r| r == name.chars().nth(0).unwrap()).unwrap() as u32;
 }
 
 impl std::fmt::Display for Solution {
@@ -186,6 +220,7 @@ mod tests {
                 vec![21, 1, 24, 14, 7],
             ],
             eval: 0,
+            opt: 0,
         };
         assert_eq!(s.evaluate(), 1400);
     }
@@ -201,7 +236,40 @@ mod tests {
                 vec![5, 17, 6, 20, 22],
             ],
             eval: 0,
+            opt: 0,
         };
         assert_eq!(s.evaluate(), 1050);
+    }
+
+    #[test]
+    fn test_index_to_name() {
+        assert_eq!(index_to_name(0, 3), String::from("AA"));
+        assert_eq!(index_to_name(1, 3), String::from("BA"));
+        assert_eq!(index_to_name(2, 3), String::from("CA"));
+        assert_eq!(index_to_name(3, 3), String::from("AB"));
+        assert_eq!(index_to_name(4, 3), String::from("BB"));
+        assert_eq!(index_to_name(5, 3), String::from("CB"));
+        assert_eq!(index_to_name(6, 3), String::from("AC"));
+        assert_eq!(index_to_name(7, 3), String::from("BC"));
+        assert_eq!(index_to_name(8, 3), String::from("CC"));
+        assert_eq!(index_to_name(18, 5), String::from("DD"));
+        assert_eq!(index_to_name(0, 30), String::from("AA"));
+        assert_eq!(index_to_name(899, 30), String::from("44"));
+    }
+
+    #[test]
+    fn test_name_to_index() {
+        assert_eq!(name_to_index("AA", 3), 0);
+        assert_eq!(name_to_index("BA", 3), 1);
+        assert_eq!(name_to_index("CA", 3), 2);
+        assert_eq!(name_to_index("AB", 3), 3);
+        assert_eq!(name_to_index("BB", 3), 4);
+        assert_eq!(name_to_index("CB", 3), 5);
+        assert_eq!(name_to_index("AC", 3), 6);
+        assert_eq!(name_to_index("BC", 3), 7);
+        assert_eq!(name_to_index("CC", 3), 8);
+        assert_eq!(name_to_index("DD", 5), 18);
+        assert_eq!(name_to_index("AA", 30), 0);
+        assert_eq!(name_to_index("44", 30), 899);
     }
 }
