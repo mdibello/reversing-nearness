@@ -1,3 +1,5 @@
+use rand::distributions::{Distribution, Uniform};
+
 pub struct Solution {
     grid: Vec<Vec<u32>>,
     eval: u64,
@@ -47,6 +49,20 @@ impl Solution {
         }
         self.eval = (sum / 2) - lower_bounds[(size - 1) as usize];
         return self.eval;
+    }
+
+    pub fn mutate(&mut self, n: u32) {
+        let step = Uniform::new(0, self.grid.len());
+        let mut rng = rand::thread_rng();
+        for _ in 0..n {
+            let x1 = step.sample(&mut rng);
+            let y1 = step.sample(&mut rng);
+            let x2 = step.sample(&mut rng);
+            let y2 = step.sample(&mut rng);
+            let temp = self.grid[x1][y1];
+            self.grid[x1][y1] = self.grid[x2][y2];
+            self.grid[x2][y2] = temp;
+        }
     }
 }
 
