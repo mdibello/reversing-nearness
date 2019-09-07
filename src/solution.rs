@@ -28,6 +28,7 @@ impl Solution {
         ];
         let size = self.grid.len() as u32;
         let mut sum: u64 = 0;
+        // TODO: fix so that we're not doing twice the necessary work
         for x1 in 0..size {
             for y1 in 0..size {
                 for x2 in 0..size {
@@ -44,12 +45,12 @@ impl Solution {
                 }
             }
         }
-        self.eval = (sum as u64) - lower_bounds[(size - 1) as usize];
+        self.eval = (sum / 2) - lower_bounds[(size - 1) as usize];
         return self.eval;
     }
 }
 
-pub fn distance(x_a: i32, y_a: i32, x_b: i32, y_b: i32, size: i32) -> u64 {
+fn distance(x_a: i32, y_a: i32, x_b: i32, y_b: i32, size: i32) -> u64 {
     let dx;
     if (x_b - x_a).abs() <= size / 2 {
         dx = (x_b - x_a).abs();
@@ -68,7 +69,7 @@ pub fn distance(x_a: i32, y_a: i32, x_b: i32, y_b: i32, size: i32) -> u64 {
         dy = y_a + size - y_b;
     }
 
-    println!("dx: {} / dy: {}", dx, dy);
+    //println!("dx: {} / dy: {}", dx, dy);
     return (dx as u64).pow(2) + (dy as u64).pow(2);
 }
 
@@ -117,6 +118,7 @@ mod tests {
         assert_eq!(distance(0, 0, 1, 1, 3), 2);
         assert_eq!(distance(0, 0, 2, 2, 3), 2);
         assert_eq!(distance(2, 1, 1, 2, 3), 2);
+
         assert_eq!(distance(1, 0, 0, 0, 3), 1);
         assert_eq!(distance(2, 0, 0, 0, 3), 1);
         assert_eq!(distance(0, 1, 0, 0, 3), 1);
@@ -155,5 +157,35 @@ mod tests {
         assert_eq!(distance(0, 1, 2, 0, 5), 5);
         assert_eq!(distance(4, 4, 2, 0, 5), 5);
         assert_eq!(distance(4, 4, 3, 4, 5), 1);
+    }
+
+    #[test]
+    fn test_evaluate_1() {
+        let s: Solution = Solution {
+            grid: vec![
+                vec![4, 16, 2, 23, 10],
+                vec![13, 8, 5, 12, 6],
+                vec![0, 22, 18, 3, 9],
+                vec![19, 15, 20, 17, 11],
+                vec![21, 1, 24, 14, 7],
+            ],
+            eval: 0,
+        };
+        assert_eq!(s.evaluate(), 1400);
+    }
+
+    #[test]
+    fn test_evaluate_2() {
+        let s: Solution = Solution {
+            grid: vec![
+                vec![12, 3, 24, 10, 18],
+                vec![0, 4, 11, 13, 1],
+                vec![14, 2, 16, 23, 21],
+                vec![15, 19, 7, 9, 8],
+                vec![5, 17, 6, 20, 22],
+            ],
+            eval: 0,
+        };
+        assert_eq!(s.evaluate(), 1050);
     }
 }
