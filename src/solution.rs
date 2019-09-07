@@ -1,6 +1,7 @@
 use rand::distributions::{Distribution, Uniform};
+use std::cmp::Ordering;
 
-#[derive(Clone)]
+#[derive(Clone, Eq)]
 pub struct Solution {
     grid: Vec<Vec<u32>>,
     eval: u64,
@@ -88,6 +89,42 @@ impl Solution {
             self.grid[x1][y1] = self.grid[x2][y2];
             self.grid[x2][y2] = temp;
         }
+    }
+
+    pub fn generate(&mut self, children: u32, mutations: u32) -> Vec<Solution> {
+        let mut new_gen: Vec<Solution> = Vec::new();
+        for _ in 0..children+1 {
+            let mut child = self.clone();
+            child.mutate(mutations);
+            new_gen.push(child);
+        }
+        return new_gen;
+    }
+
+    pub fn size(self) -> usize {
+        return self.grid.len();
+    }
+
+    pub fn eval(self) -> u64 {
+        return self.eval;
+    }
+}
+
+impl PartialOrd for Solution {
+    fn partial_cmp(&self, other: &Solution) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl Ord for Solution {
+    fn cmp(&self, other: &Solution) -> Ordering {
+        self.eval.cmp(&other.eval)
+    }
+}
+
+impl PartialEq for Solution {
+    fn eq(&self, other: &Solution) -> bool {
+        self.eval == other.eval
     }
 }
 
