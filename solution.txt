@@ -1,9 +1,9 @@
-(AA, BA, CA, DA, EA, FA),
-(AB, BB, CB, DB, EB, FB),
-(AC, BC, CC, DC, EC, FC),
-(AD, BD, CD, DD, ED, FD),
-(AE, BE, CE, DE, EE, FE),
-(AF, BF, CF, DF, EF, FF)
+(BB, AC, AE, DB, BE, BD),
+(AA, DF, EC, BC, CF, FC),
+(FF, DA, DD, CB, EE, FD),
+(CD, BF, FA, FB, CC, AB),
+(CA, AD, AF, FE, CE, EB),
+(EF, DE, DC, EA, BA, ED)
 
 (AA, BA, CA, DA, EA, FA, GA),
 (AB, BB, CB, DB, EB, FB, GB),

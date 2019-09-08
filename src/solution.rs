@@ -89,6 +89,7 @@ impl Solution {
             self.grid[x1][y1] = self.grid[x2][y2];
             self.grid[x2][y2] = temp;
         }
+        self.eval = self.clone().evaluate();
     }
 
     pub fn generate(&mut self, children: u32, mutations: u32) -> Vec<Solution> {
