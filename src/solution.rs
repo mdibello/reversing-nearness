@@ -3,9 +3,8 @@ use std::cmp::Ordering;
 
 #[derive(Clone, Eq)]
 pub struct Solution {
-    grid: Vec<Vec<u32>>,
+    grid: Vec<u32>,
     eval: u64,
-    opt: u64,
 }
 
 impl Solution {
@@ -13,13 +12,9 @@ impl Solution {
         let mut s: Solution = Solution {
             grid: Vec::new(),
             eval: 0,
-            opt: 0,
         };
         for i in 0..size.pow(2) {
-            if i % size == 0 {
-                s.grid.push(Vec::new());
-            }
-            s.grid[(i/size) as usize].push(i as u32);
+            s.grid.push(i as u32);
         }
         return s;
     }
@@ -28,16 +23,11 @@ impl Solution {
         let mut s: Solution = Solution {
             grid: Vec::new(),
             eval: 0,
-            opt: 0,
         };
 
         let size = (strs.len() as f64).sqrt() as u32;
         for i in 0..strs.len() {
-            if i as u32 % size == 0 {
-                s.grid.push(Vec::new());
-            }
-            let idx = (i as u32 / size) as usize;
-            s.grid[idx].push(name_to_index(strs[i], size));
+            s.grid.push(name_to_index(strs[i], size));
         }
 
         s.eval = s.clone().evaluate();
@@ -53,27 +43,25 @@ impl Solution {
             474261920, 673706892, 949783680, 1311600000, 1799572164,
             2425939956, 3252444776, 4294801980, 5643997650,
         ];
-        let size = self.grid.len() as u32;
+        let size = (self.grid.len() as f64).sqrt() as u32;
         let mut sum: u64 = 0;
-        // TODO: fix so that we're not doing twice the necessary work
-        for x1 in 0..size {
-            for y1 in 0..size {
-                for x2 in 0..size {
-                    for y2 in 0..size {
-                        let orig_idx_1 = self.grid[x1 as usize][y1 as usize];
-                        let x_a = orig_idx_1 % size;
-                        let y_a = orig_idx_1 / size;
-                        let orig_idx_2 = self.grid[x2 as usize][y2 as usize];
-                        let x_b = orig_idx_2 % size;
-                        let y_b = orig_idx_2 / size;
-                        sum += distance(x1 as i32, y1 as i32, x2 as i32, y2 as i32, size as i32) * 
-                                distance(x_a as i32, y_a as i32, x_b as i32, y_b as i32, size as i32);
-                    }
-                }
+        for idx_a in 0..self.grid.len() {
+            for idx_b in idx_a..self.grid.len() {
+                let orig_idx_1 = self.grid[idx_a as usize];
+                let orig_x_a = orig_idx_1 % size;
+                let orig_y_a = orig_idx_1 / size;
+                let orig_idx_2 = self.grid[idx_b as usize];
+                let orig_x_b = orig_idx_2 % size;
+                let orig_y_b = orig_idx_2 / size;
+                let new_x_a = (idx_a as u32) % size;
+                let new_y_a = (idx_a as u32) / size;
+                let new_x_b = (idx_b as u32) % size;
+                let new_y_b = (idx_b as u32) / size;
+                sum += distance(orig_x_a as i32, orig_y_a as i32, orig_x_b as i32, orig_y_b as i32, size as i32) * 
+                        distance(new_x_a as i32, new_y_a as i32, new_x_b as i32, new_y_b as i32, size as i32);
             }
         }
-        self.opt = lower_bounds[(size - 1) as usize];
-        self.eval = (sum / 2) - self.opt;
+        self.eval = sum - lower_bounds[(size - 1) as usize];
         return self.eval;
     }
 
@@ -81,13 +69,11 @@ impl Solution {
         let step = Uniform::new(0, self.grid.len());
         let mut rng = rand::thread_rng();
         for _ in 0..n {
-            let x1 = step.sample(&mut rng);
-            let y1 = step.sample(&mut rng);
-            let x2 = step.sample(&mut rng);
-            let y2 = step.sample(&mut rng);
-            let temp = self.grid[x1][y1];
-            self.grid[x1][y1] = self.grid[x2][y2];
-            self.grid[x2][y2] = temp;
+            let idx_a = step.sample(&mut rng);
+            let idx_b = step.sample(&mut rng);
+            let temp = self.grid[idx_a];
+            self.grid[idx_a] = self.grid[idx_b];
+            self.grid[idx_b] = temp;
         }
         self.eval = self.clone().evaluate();
     }
@@ -103,7 +89,7 @@ impl Solution {
     }
 
     pub fn size(self) -> usize {
-        return self.grid.len();
+        return (self.grid.len() as f64).sqrt() as usize;
     }
 
     pub fn eval(self) -> u64 {
@@ -173,22 +159,23 @@ fn name_to_index(name: &str, size: u32) -> u32 {
 
 impl std::fmt::Display for Solution {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        let mut _row_count = 0;
-        for row in &self.grid {
-            let mut _cell_count = 0;
-            _row_count += 1;
-            write!(f, "(");
-            for cell in row {
-                _cell_count += 1;
-                write!(f, "{}", index_to_name(*cell, row.len() as u32));
-                if _cell_count < row.len() {
-                    write!(f, ", ");
+        let size = (self.grid.len() as f64).sqrt() as u32;
+        let mut _cell_count = 0;
+        for cell in &self.grid {
+            if _cell_count % size == 0 {
+                write!(f, "(");
+            }
+            write!(f, "{}", index_to_name(*cell, size));
+            if (_cell_count + 1) % size != 0 {
+                write!(f, ", ");
+            } else {
+                write!(f, ")");
+                if _cell_count != (self.grid.len() - 1) as u32 {
+                    write!(f, ",");
                 }
+                write!(f, "\n");
             }
-            write!(f, ")");
-            if _row_count < self.grid.len() {
-                write!(f, ",\n");
-            }
+            _cell_count += 1;
         }
         return write!(f, "");
     }
@@ -251,14 +238,13 @@ mod tests {
     fn test_evaluate_1() {
         let s: Solution = Solution {
             grid: vec![
-                vec![4, 16, 2, 23, 10],
-                vec![13, 8, 5, 12, 6],
-                vec![0, 22, 18, 3, 9],
-                vec![19, 15, 20, 17, 11],
-                vec![21, 1, 24, 14, 7],
+                4, 16, 2, 23, 10,
+                13, 8, 5, 12, 6,
+                0, 22, 18, 3, 9,
+                19, 15, 20, 17, 11,
+                21, 1, 24, 14, 7,
             ],
             eval: 0,
-            opt: 0,
         };
         assert_eq!(s.evaluate(), 1400);
     }
@@ -267,14 +253,13 @@ mod tests {
     fn test_evaluate_2() {
         let s: Solution = Solution {
             grid: vec![
-                vec![12, 3, 24, 10, 18],
-                vec![0, 4, 11, 13, 1],
-                vec![14, 2, 16, 23, 21],
-                vec![15, 19, 7, 9, 8],
-                vec![5, 17, 6, 20, 22],
+                12, 3, 24, 10, 18,
+                0, 4, 11, 13, 1,
+                14, 2, 16, 23, 21,
+                15, 19, 7, 9, 8,
+                5, 17, 6, 20, 22,
             ],
             eval: 0,
-            opt: 0,
         };
         assert_eq!(s.evaluate(), 1050);
     }

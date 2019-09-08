@@ -27,7 +27,7 @@ fn main() -> std::io::Result<()> {
 
     for s in saved_solutions {
         if s.len() > 0 {
-            let temp: String = s.replace("\n", "").replace(" ", "").replace("(", "").replace(")", "");
+            let temp: String = s.replace("\n", "").replace(" ", "").replace("(", "").replace(")", "").replace(";", "");
             let strs: Vec::<&str> = temp.split(",").collect::<Vec<&str>>();
             solutions.push(Solution::load(strs));
         }
@@ -71,8 +71,15 @@ fn update(solutions: Vec<Solution>) -> std::io::Result<()> {
             .open("new_solution.txt")
             .unwrap();
 
+        let size = solutions.clone().len();
+        let mut i = 0;
         for s in solutions {
-            writeln!(file, "{}\n", s);
+            write!(file, "{}", s);
+            if i != size - 1 {
+                write!(file, ";");
+            }
+            write!(file, "\n\n");
+            i += 1;
         }
     }
 
