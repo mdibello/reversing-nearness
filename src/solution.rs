@@ -16,6 +16,7 @@ impl Solution {
         for i in 0..size.pow(2) {
             s.grid.push(i as u32);
         }
+        s.eval = s.clone().evaluate();
         return s;
     }
 
@@ -24,14 +25,11 @@ impl Solution {
             grid: Vec::new(),
             eval: 0,
         };
-
         let size = (strs.len() as f64).sqrt() as u32;
         for i in 0..strs.len() {
             s.grid.push(name_to_index(strs[i], size));
         }
-
         s.eval = s.clone().evaluate();
-
         return s;
     }
 
